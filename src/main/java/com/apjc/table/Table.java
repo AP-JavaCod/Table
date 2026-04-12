@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.function.Function;
 
 public class Table {
 
@@ -36,6 +37,24 @@ public class Table {
 
     public Field removeField(int index){
         return VALUES.remove(index);
+    }
+
+    public <T> Table filter(String name, Class<T> type, Function<T, Boolean> fil){
+        Builder builder = new Builder();
+        for(Row row : ROWS){
+            builder.add(row.name(), row.type(), row.isRequired());
+        }
+        Table table = builder.build();
+        for(Field field : VALUES){
+            if(fil.apply(field.get(name, type))){
+                BuilderField val = table.addField();
+                for(Row row : ROWS){
+                    val.add(row.name(), field.get(row.name()));
+                }
+                val.build();
+            }
+        }
+        return table;
     }
 
     public static final class Builder{
