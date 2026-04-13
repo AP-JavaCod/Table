@@ -22,6 +22,24 @@ public class Table implements Iterable<Table.Field> {
         return strings;
     }
 
+    public Class<?> getRowType(String name){
+        for(Row row : ROWS){
+            if(row.name().equals(name)){
+                return row.type();
+            }
+        }
+        throw new IllegalArgumentException("The '" + name + "' field does not exist");
+    }
+
+    public boolean isRowRequired(String name){
+        for(Row row : ROWS){
+            if(row.name().equals(name)){
+                return row.isRequired();
+            }
+        }
+        throw new IllegalArgumentException("The '" + name + "' field does not exist");
+    }
+
     public BuilderField addField(){
         return new BuilderField(ROWS, VALUES::add);
     }
@@ -138,7 +156,7 @@ public class Table implements Iterable<Table.Field> {
         public <T> T get(String name, Class<T> type){
             Row row = getRow(name);
             Object value = VALUES.get(row);
-            if(type.isInstance(value)){
+            if((value == null) || type.isInstance(value)){
                 return (T)value;
             }else if(row == null){
                 throw new IllegalArgumentException("The '" + name + "' field does not exist");
