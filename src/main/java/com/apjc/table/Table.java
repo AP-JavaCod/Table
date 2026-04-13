@@ -1,14 +1,9 @@
 package com.apjc.table;
 
-import java.util.Set;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.List;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.function.Function;
 
-public class Table {
+public class Table implements Iterable<Table.Field> {
 
     private final Set<Row> ROWS = new HashSet<>();
     private final List<Field> VALUES = new ArrayList<>();
@@ -39,22 +34,57 @@ public class Table {
         return VALUES.remove(index);
     }
 
+    @Override
+    public Iterator<Field> iterator(){
+        return VALUES.iterator();
+    }
+
     public <T> Table filter(String name, Class<T> type, Function<T, Boolean> fil){
+        Table table = tableRow();
+        for(Field field : VALUES){
+            if(fil.apply(field.get(name, type))){
+               setField(table, field);
+            }
+        }
+        return table;
+    }
+
+    public <T> Table sort(String name, Class<T> type, Sorter<T> sorter){
+        List<Field> fields = new ArrayList<>();
+        for(Field field : VALUES){
+            boolean isNotAdd = true;
+            for(int i = 0; i < fields.size() && isNotAdd; i++){
+                Field l = fields.get(i);
+                if(sorter.sort(field.get(name, type), l.get(name, type))){
+                    fields.add(i, field);
+                    isNotAdd = false;
+                }
+            }
+            if(isNotAdd){
+                fields.add(field);
+            }
+        }
+        Table table = tableRow();
+        for(Field field : fields){
+            setField(table, field);
+        }
+        return table;
+    }
+
+    private Table tableRow(){
         Builder builder = new Builder();
         for(Row row : ROWS){
             builder.add(row.name(), row.type(), row.isRequired());
         }
-        Table table = builder.build();
-        for(Field field : VALUES){
-            if(fil.apply(field.get(name, type))){
-                BuilderField val = table.addField();
-                for(Row row : ROWS){
-                    val.add(row.name(), field.get(row.name()));
-                }
-                val.build();
-            }
+        return builder.build();
+    }
+
+    private void setField(Table table, Field field){
+        BuilderField fieldBuild = table.addField();
+        for(Row row : ROWS){
+            fieldBuild.add(row.name(), field.get(row.name()));
         }
-        return table;
+        fieldBuild.build();
     }
 
     public static final class Builder{
@@ -98,7 +128,11 @@ public class Table {
         }
 
         public Object get(String name){
-            return VALUES.get(getRow(name));
+            Row row = getRow(name);
+            if(row == null){
+                throw new IllegalArgumentException("The '" + name + "' field does not exist");
+            }
+            return VALUES.get(row);
         }
 
         public <T> T get(String name, Class<T> type){
@@ -173,9 +207,17 @@ public class Table {
 
     }
 
+    @FunctionalInterface
     private interface Registration{
 
         void registry(Field field);
+
+    }
+
+    @FunctionalInterface
+    public interface Sorter <T>{
+
+        boolean sort(T val1, T val2);
 
     }
 
