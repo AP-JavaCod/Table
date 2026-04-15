@@ -138,7 +138,7 @@ public class Table implements Iterable<Table.Field> {
                 }else if(value == null){
                     throw new IllegalArgumentException("The '" + name + "' field is required and cannot be null");
                 }else {
-                    throw new ClassCastException("The field '" + name + "' to type '" + row.type() + "' cannot be assigned type '" + value.getClass() + "'");
+                    throw new ClassCastException("The field '" + name + "' to type '" + row.type().getName() + "' cannot be assigned type '" + value.getClass().getName() + "'");
                 }
             }else {
                 throw new IllegalArgumentException("The '" + name + "' field does not exist");
@@ -156,12 +156,14 @@ public class Table implements Iterable<Table.Field> {
         public <T> T get(String name, Class<T> type){
             Row row = getRow(name);
             Object value = VALUES.get(row);
-            if((value == null) || type.isInstance(value)){
+            if(value == null){
+                return null;
+            }else if(type.isInstance(value)){
                 return (T)value;
             }else if(row == null){
                 throw new IllegalArgumentException("The '" + name + "' field does not exist");
             }
-            throw new ClassCastException("Field '" + name + "' of type '" + row.type() + "' cannot be converted to type '" + type + "'");
+            throw new ClassCastException("Field '" + name + "' of type '" + row.type().getName() + "' cannot be converted to type '" + type.getName() + "'");
         }
 
         private Row getRow(String name){
@@ -195,7 +197,7 @@ public class Table implements Iterable<Table.Field> {
                 }else if(value == null){
                     throw new IllegalArgumentException("The '" + name + "' field is required and cannot be null");
                 }
-                throw new ClassCastException("The field '" + name + "' to type '" + row.type() + "' cannot be assigned type '" + value.getClass() + "'");
+                throw new ClassCastException("The field '" + name + "' to type '" + row.type().getName() + "' cannot be assigned type '" + value.getClass().getName() + "'");
             }
             throw new IllegalArgumentException("The '" + name + "' field does not exist");
         }
