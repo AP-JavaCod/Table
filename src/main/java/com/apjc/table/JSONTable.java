@@ -5,8 +5,6 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import java.util.Map;
-
 public class JSONTable {
 
     public static String write(Table table) {
@@ -49,11 +47,34 @@ public class JSONTable {
             JSONObject jsonValue = (JSONObject) value;
             Table.BuilderField builderField = table.addField();
             for(String name : table.getRow()){
-                builderField.add(name, jsonValue.get(name));
+                Object val = jsonValue.get(name);
+                Class<?> valType = table.getRowType(name);
+                builderField.add(name, convert(valType, val));
             }
             builderField.build();
         }
         return table;
+    }
+
+    private static <T> T convert(Class<T> type, Object value){
+        if(value == null || type.isInstance(value)){
+            return (T)value;
+        }else if(Number.class.isAssignableFrom(type) && value instanceof Number val){
+           if(type == Byte.class){
+                return (T)new Byte(val.byteValue());
+            }else if(type == Short.class){
+                return (T)new Short(val.shortValue());
+            } else if (type == Integer.class) {
+                return (T)new Integer(val.intValue());
+            } else if (type == Long.class) {
+                return (T)new Long(val.longValue());
+            } else if (type == Float.class) {
+                return (T) new Float(val.floatValue());
+            }else if(type == Double.class){
+                return (T)new Double(val.doubleValue());
+            }
+        }
+        throw new ClassCastException("To type '" + type.getName() + "' cannot be assigned type '" + value.getClass().getName() + "'");
     }
 
 }
