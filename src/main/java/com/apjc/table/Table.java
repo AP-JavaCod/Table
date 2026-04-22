@@ -16,7 +16,7 @@ public class Table implements Iterable<Table.Field> {
         return VALUES.size();
     }
 
-    public Set<String> getRow(){
+    public Set<String> getRows(){
         Set<String> strings = new HashSet<>();
         ROWS.forEach(row -> strings.add(row.name()));
         return strings;
@@ -52,6 +52,18 @@ public class Table implements Iterable<Table.Field> {
         return VALUES.remove(index);
     }
 
+    public List<Object> getRowValue(String name){
+        List<Object> list = new ArrayList<>();
+        VALUES.forEach(f -> list.add(f.get(name)));
+        return list;
+    }
+
+    public <T> List<T> getRowValue(String name, Class<T> type){
+        List<T> list = new ArrayList<>();
+        VALUES.forEach(f -> list.add(f.get(name, type)));
+        return list;
+    }
+
     @Override
     public Iterator<Field> iterator(){
         return VALUES.iterator();
@@ -83,25 +95,19 @@ public class Table implements Iterable<Table.Field> {
             }
         }
         Table table = tableRow();
-        for(Field field : fields){
-            setField(table, field);
-        }
+        fields.forEach(field -> setField(table, field));
         return table;
     }
 
     private Table tableRow(){
         Builder builder = new Builder();
-        for(Row row : ROWS){
-            builder.add(row.name(), row.type(), row.isRequired());
-        }
+        ROWS.forEach(row -> builder.add(row.name(), row.type(), row.isRequired()));
         return builder.build();
     }
 
     private void setField(Table table, Field field){
         BuilderField fieldBuild = table.addField();
-        for(Row row : ROWS){
-            fieldBuild.add(row.name(), field.get(row.name()));
-        }
+        ROWS.forEach(row -> fieldBuild.add(row.name(), field.get(row.name())));
         fieldBuild.build();
     }
 

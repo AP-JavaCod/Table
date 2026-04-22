@@ -9,7 +9,7 @@ public class JSONTable {
 
     public static String write(Table table) {
         JSONArray jsonRows =  new JSONArray();
-        for(String name : table.getRow()){
+        for(String name : table.getRows()){
             JSONObject jsonRow = new JSONObject();
             jsonRow.put("name", name);
             jsonRow.put("type", table.getRowType(name).getName());
@@ -21,7 +21,7 @@ public class JSONTable {
         JSONArray jsonValues = new JSONArray();
         for(Table.Field field : table){
             JSONObject jsonValue = new JSONObject();
-            for(String name : table.getRow()){
+            for(String name : table.getRows()){
                 jsonValue.put(name, field.get(name));
             }
             jsonValues.add(jsonValue);
@@ -46,7 +46,7 @@ public class JSONTable {
         for(Object value : jsonValues){
             JSONObject jsonValue = (JSONObject) value;
             Table.BuilderField builderField = table.addField();
-            for(String name : table.getRow()){
+            for(String name : table.getRows()){
                 Object val = jsonValue.get(name);
                 Class<?> valType = table.getRowType(name);
                 builderField.add(name, convert(valType, val));
